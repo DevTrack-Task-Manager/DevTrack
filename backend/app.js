@@ -1,6 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 const createAuthRouter = require("./routes/auth");
+const createTasksRouter = require("./routes/tasks");
 
 function createApp(pool) {
   const app = express();
@@ -13,6 +14,7 @@ function createApp(pool) {
   });
 
   app.use("/api/auth", createAuthRouter(pool));
+  app.use("/api/tasks", createTasksRouter(pool));
 
   app.use((err, req, res, next) => {
     if (res.headersSent) {
