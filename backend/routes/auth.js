@@ -1,5 +1,7 @@
+
 const express = require("express");
 const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
 
 function createAuthRouter(pool) {
   const router = express.Router();
@@ -65,6 +67,81 @@ function createAuthRouter(pool) {
         });
       }
 
+      return next(error);
+    }
+  });
+
+  router.post("/login", async (req, res, next) => {
+    try {
+      const { email, password } = req.body || {};
+
+      if (
+        typeof email !== "string" ||
+        typeof password !== "string" ||
+        !email.trim() ||
+        !password
+      ) {
+        return res.status(400).json({
+          error: "Email and password are required.",
+        });
+      }
+
+      const normalizedEmail = email.trim().toLowerCase();
+
+      if (
+        normalizedEmail.length > 254 ||
+        !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)
+      ) {
+        return res.status(400).json({
+          error: "Enter a valid email address.",
+        });
+      }
+
+      const result = await pool.query(
+        `SELECT id, name, email, password_hash
+         FROM users
+         WHERE email = $1`,
+        [normalizedEmail]
+      );
+
+      const user = result.rows[0];
+
+      if (
+        !user ||
+        !(await bcrypt.compare(password, user.password_hash))
+      ) {
+        return res.status(401).json({
+          error: "Invalid email or password.",
+        });
+      }
+
+      const secret = process.env.JWT_SECRET;
+
+      if (!secret) {
+        return res.status(500).json({
+          error: "Authentication is not configured.",
+        });
+      }
+
+      const token = jwt.sign(
+        { email: user.email },
+        secret,
+        {
+          subject: String(user.id),
+          expiresIn: "1h",
+        }
+      );
+
+      return res.status(200).json({
+        message: "Login successful.",
+        token,
+        user: {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+        },
+      });
+    } catch (error) {
       return next(error);
     }
   });

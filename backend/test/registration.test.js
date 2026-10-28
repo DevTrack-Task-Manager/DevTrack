@@ -1,21 +1,33 @@
+
 const { test } = require("node:test");
 const assert = require("node:assert/strict");
 const request = require("supertest");
 const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
 const createApp = require("../app");
 
-function createFakePool() {
-  const users = [];
+function createFakePool(initialUsers = []) {
+  const users = initialUsers.map((user) => ({ ...user }));
 
   return {
     users,
+
     async query(sql, values) {
-      if (users.some((u) => u.email === values[1])) {
+      // Simulate the PostgreSQL SELECT used by login.
+      if (sql.includes("SELECT id, name, email, password_hash")) {
+        const email = values[0];
+        const user = users.find((entry) => entry.email === email);
+        return { rows: user ? [{ ...user }] : [] };
+      }
+
+      // Simulate the unique email constraint for registration.
+      if (users.some((user) => user.email === values[1])) {
         const error = new Error("Duplicate email");
         error.code = "23505";
         throw error;
       }
 
+      // Simulate inserting a registered user.
       const user = {
         id: users.length + 1,
         name: values[0],
@@ -25,6 +37,7 @@ function createFakePool() {
       };
 
       users.push(user);
+
       return {
         rows: [{
           id: user.id,
@@ -36,6 +49,8 @@ function createFakePool() {
     },
   };
 }
+
+const TEST_JWT_SECRET = "test-secret-only-for-automated-tests";
 
 test("registers a user and never returns the password hash", async () => {
   const pool = createFakePool();
@@ -61,7 +76,7 @@ test("registers a user and never returns the password hash", async () => {
   );
 });
 
-test("rejects missing required fields", async () => {
+test("rejects missing registration fields", async () => {
   const response = await request(createApp(createFakePool()))
     .post("/api/auth/register")
     .send({ name: "Test User" });
@@ -69,23 +84,31 @@ test("rejects missing required fields", async () => {
   assert.equal(response.status, 400);
 });
 
-test("rejects invalid email", async () => {
+test("rejects an invalid registration email", async () => {
   const response = await request(createApp(createFakePool()))
     .post("/api/auth/register")
-    .send({ name: "Test User", email: "abc.com", password: "Test@123" });
+    .send({
+      name: "Test User",
+      email: "abc.com",
+      password: "Test@123",
+    });
 
   assert.equal(response.status, 400);
 });
 
-test("rejects a password shorter than six characters", async () => {
+test("rejects a registration password shorter than six characters", async () => {
   const response = await request(createApp(createFakePool()))
     .post("/api/auth/register")
-    .send({ name: "Test User", email: "test@demo.com", password: "123" });
+    .send({
+      name: "Test User",
+      email: "test@demo.com",
+      password: "123",
+    });
 
   assert.equal(response.status, 400);
 });
 
-test("rejects duplicate email addresses", async () => {
+test("rejects duplicate registration emails", async () => {
   const pool = createFakePool();
   const app = createApp(pool);
   const user = {
@@ -105,4 +128,75 @@ test("rejects duplicate email addresses", async () => {
 
   assert.equal(duplicate.status, 409);
   assert.equal(pool.users.length, 1);
+});
+
+test("logs in with valid credentials and returns a verifiable JWT", async () => {
+  process.env.JWT_SECRET = TEST_JWT_SECRET;
+
+  const password = "Test@123";
+  const passwordHash = await bcrypt.hash(password, 10);
+  const pool = createFakePool([{
+    id: 1,
+    name: "Test User",
+    email: "test@example.com",
+    password_hash: passwordHash,
+  }]);
+
+  const response = await request(createApp(pool))
+    .post("/api/auth/login")
+    .send({ email: "TEST@example.com", password });
+
+  assert.equal(response.status, 200);
+  assert.equal(response.body.message, "Login successful.");
+  assert.equal(response.body.user.email, "test@example.com");
+  assert.equal("password_hash" in response.body.user, false);
+  assert.equal("password" in response.body.user, false);
+
+  const decoded = jwt.verify(response.body.token, TEST_JWT_SECRET);
+  assert.equal(decoded.sub, "1");
+  assert.equal(decoded.email, "test@example.com");
+  assert.ok(decoded.exp > decoded.iat);
+});
+
+test("rejects an incorrect login password", async () => {
+  process.env.JWT_SECRET = TEST_JWT_SECRET;
+
+  const pool = createFakePool([{
+    id: 1,
+    name: "Test User",
+    email: "test@example.com",
+    password_hash: await bcrypt.hash("Test@123", 10),
+  }]);
+
+  const response = await request(createApp(pool))
+    .post("/api/auth/login")
+    .send({
+      email: "test@example.com",
+      password: "Wrong@123",
+    });
+
+  assert.equal(response.status, 401);
+  assert.equal(response.body.error, "Invalid email or password.");
+});
+
+test("rejects login for an unknown email", async () => {
+  process.env.JWT_SECRET = TEST_JWT_SECRET;
+
+  const response = await request(createApp(createFakePool()))
+    .post("/api/auth/login")
+    .send({
+      email: "unknown@example.com",
+      password: "Test@123",
+    });
+
+  assert.equal(response.status, 401);
+  assert.equal(response.body.error, "Invalid email or password.");
+});
+
+test("rejects missing login fields", async () => {
+  const response = await request(createApp(createFakePool()))
+    .post("/api/auth/login")
+    .send({ email: "test@example.com" });
+
+  assert.equal(response.status, 400);
 });
