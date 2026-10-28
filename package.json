@@ -1,0 +1,20 @@
+{
+  "name": "devtrack",
+  "version": "0.1.0",
+  "private": true,
+  "description": "DevTrack task manager: convenience scripts for the backend/ and client/ workspaces",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "install:all": "npm install --prefix backend && npm install --prefix client",
+    "dev": "concurrently -n api,web -c green,white \"npm run dev --prefix backend\" \"npm run dev --prefix client\"",
+    "dev:backend": "npm run dev --prefix backend",
+    "dev:client": "npm run dev --prefix client",
+    "lint": "npm run lint --prefix backend && npm run lint --prefix client",
+    "test": "npm test --prefix backend && npm test --prefix client",
+    "build": "npm run build --prefix client",
+    "seed": "npm run seed --prefix backend"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.0"
+  }
+}

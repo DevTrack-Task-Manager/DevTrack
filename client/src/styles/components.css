@@ -1,0 +1,333 @@
+/* ───────── Buttons ───────── */
+.btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 48px;
+  padding: 0 22px;
+  border: var(--border) solid transparent;
+  border-radius: 0;
+  background: transparent;
+  font-weight: 600;
+  line-height: 1;
+  text-decoration: none;
+  cursor: pointer;
+  overflow: hidden;
+  transition:
+    background-color var(--fast) var(--ease),
+    color var(--fast) var(--ease),
+    border-color var(--fast) var(--ease),
+    transform var(--fast) var(--ease);
+}
+
+.btn:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.btn--block {
+  display: flex;
+  width: 100%;
+}
+
+.btn--primary {
+  background: var(--green);
+  border-color: var(--green);
+  color: var(--black);
+}
+
+.btn--primary:hover:not(:disabled) {
+  background: var(--bone);
+  border-color: var(--bone);
+  color: var(--black);
+}
+
+.btn--outline {
+  border-color: var(--bone);
+  color: var(--bone);
+}
+
+.btn--outline:hover:not(:disabled) {
+  background: var(--bone);
+  color: var(--black);
+}
+
+.btn--small {
+  min-height: 40px;
+  padding: 0 16px;
+  font-size: 0.9375rem;
+}
+
+.btn:disabled {
+  background: var(--graphite);
+  border-color: var(--line);
+  color: var(--ash);
+  cursor: not-allowed;
+}
+
+/* A flat bar sweeps along the bottom edge while a request is in flight. */
+.btn[aria-busy='true']::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  height: 4px;
+  width: 40%;
+  background: var(--black);
+  animation: sweep 0.9s linear infinite;
+}
+
+@keyframes sweep {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(250%);
+  }
+}
+
+/* ───────── Fields ───────── */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.field__label {
+  font-size: 0.9375rem;
+  font-weight: 600;
+}
+
+.input-group {
+  display: flex;
+  align-items: stretch;
+}
+
+.input {
+  flex: 1;
+  min-width: 0;
+  min-height: 48px;
+  padding: 0 14px;
+  border: var(--border) solid var(--line-strong);
+  border-radius: 0;
+  background: var(--black);
+  color: var(--bone);
+  transition: border-color var(--fast) var(--ease);
+}
+
+.input::placeholder {
+  color: var(--ash);
+  opacity: 0.65;
+}
+
+.input:hover {
+  border-color: var(--bone);
+}
+
+.input:focus-visible {
+  border-color: var(--green);
+}
+
+.input[aria-invalid='true'] {
+  border-color: var(--danger);
+}
+
+.input-group .input:not(:last-child) {
+  border-right-width: 0;
+}
+
+/* Chrome paints autofilled inputs light blue; keep them flat black. */
+.input:-webkit-autofill,
+.input:-webkit-autofill:hover,
+.input:-webkit-autofill:focus {
+  -webkit-text-fill-color: var(--bone);
+  box-shadow: 0 0 0 1000px var(--black) inset;
+  caret-color: var(--bone);
+}
+
+.input-toggle {
+  min-width: 72px;
+  padding: 0 14px;
+  border: var(--border) solid var(--line-strong);
+  border-radius: 0;
+  background: var(--graphite);
+  color: var(--bone);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background-color var(--fast) var(--ease),
+    color var(--fast) var(--ease);
+}
+
+.input-toggle:hover {
+  background: var(--bone);
+  color: var(--black);
+}
+
+.field__hint {
+  color: var(--ash);
+  font-size: 0.875rem;
+}
+
+.field__error {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  color: var(--danger);
+  font-size: 0.9375rem;
+  font-weight: 500;
+}
+
+.field__error::before {
+  content: '!';
+  flex: none;
+  width: 18px;
+  height: 18px;
+  margin-top: 2px;
+  background: var(--danger);
+  color: var(--black);
+  font-size: 0.8125rem;
+  font-weight: 800;
+  line-height: 18px;
+  text-align: center;
+}
+
+/* ───────── Checkbox ───────── */
+.check {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.check input {
+  appearance: none;
+  flex: none;
+  width: 22px;
+  height: 22px;
+  margin: 0;
+  border: var(--border) solid var(--line-strong);
+  border-radius: 0;
+  background: var(--black);
+  cursor: pointer;
+  transition:
+    background-color var(--fast) var(--ease),
+    border-color var(--fast) var(--ease);
+}
+
+.check input:hover {
+  border-color: var(--bone);
+}
+
+.check input:checked {
+  background: var(--green);
+  border-color: var(--green);
+}
+
+.check input:checked::after {
+  content: '';
+  display: block;
+  width: 5px;
+  height: 10px;
+  margin: 2px 0 0 6px;
+  border: solid var(--black);
+  border-width: 0 3px 3px 0;
+  transform: rotate(45deg);
+}
+
+/* ───────── Alerts ───────── */
+.alert {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 12px 16px;
+  border-left: 6px solid var(--line-strong);
+  background: var(--graphite);
+}
+
+.alert__title {
+  font-weight: 700;
+}
+
+.alert__body {
+  color: var(--ash);
+  font-size: 0.9375rem;
+}
+
+.alert--error {
+  border-left-color: var(--danger);
+  background: var(--danger-wash);
+}
+
+.alert--success {
+  border-left-color: var(--green);
+  background: var(--green-wash);
+}
+
+.alert--info {
+  border-left-color: var(--amber);
+}
+
+/* ───────── Password strength ───────── */
+.strength {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.strength__bars {
+  display: flex;
+  flex: 1;
+  gap: 4px;
+}
+
+.strength__bar {
+  flex: 1;
+  height: 6px;
+  background: var(--line);
+}
+
+.strength--1 .strength__bar:nth-child(-n + 1) {
+  background: var(--danger);
+}
+
+.strength--2 .strength__bar:nth-child(-n + 2) {
+  background: var(--amber);
+}
+
+.strength--3 .strength__bar:nth-child(-n + 3) {
+  background: var(--green);
+}
+
+.strength__label {
+  min-width: 64px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-align: right;
+}
+
+/* ───────── Page loader ───────── */
+.loader {
+  display: grid;
+  min-height: 100vh;
+  place-items: center;
+}
+
+.loader__bar {
+  width: 160px;
+  height: 6px;
+  background: var(--line);
+  overflow: hidden;
+}
+
+.loader__bar::after {
+  content: '';
+  display: block;
+  width: 40%;
+  height: 100%;
+  background: var(--green);
+  animation: sweep 0.9s linear infinite;
+}
