@@ -3,6 +3,16 @@ const bcrypt = require("bcryptjs");
 
 function createAuthRouter(pool) {
   const router = express.Router();
+  const authenticateToken = require("../middleware/auth");
+
+ router.get("/me", authenticateToken, (req, res) => {
+  return res.status(200).json({
+    user: {
+      id: req.user.sub,
+      email: req.user.email,
+    },
+  });
+});
 
   router.post("/register", async (req, res, next) => {
     try {
