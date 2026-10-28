@@ -1,0 +1,33 @@
+/* DevTrack design tokens. Flat, 2D, sharp: no radius, no shadows, no gradients. */
+:root {
+  color-scheme: dark;
+
+  /* Black */
+  --black: #000000;
+  --coal: #0a0b0a;
+  --graphite: #151715;
+  --line: #2a2d2a;
+  --line-strong: #6f766f;
+
+  /* Text */
+  --bone: #f2f6f0;
+  --ash: #a9b0aa;
+
+  /* Green */
+  --green: #25e56f;
+  --green-bright: #6dffa2;
+  --green-deep: #0d4f27;
+  --green-wash: #07220f;
+
+  /* Signals (always paired with text or a glyph, never colour alone) */
+  --danger: #ff6b5c;
+  --danger-wash: #2a0f0c;
+  --amber: #ffc247;
+
+  --font-display: 'Archivo Variable', 'Archivo', 'Helvetica Neue', Arial, sans-serif;
+  --font-body: 'IBM Plex Sans', 'Segoe UI', system-ui, -apple-system, sans-serif;
+
+  --border: 2px;
+  --fast: 90ms;
+  --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+}

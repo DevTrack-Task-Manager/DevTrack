@@ -1,3 +1,26 @@
+# Dependencies
 node_modules/
+
+# Environment files (real secrets). Only the .example files are committed.
 .env
-.env.local
+.env.*
+!.env.example
+
+# Build and test output
+dist/
+build/
+coverage/
+.vite/
+
+# Logs and OS/editor files
+*.log
+npm-debug.log*
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# Local database dumps
+*.sqlite
+data/db/
