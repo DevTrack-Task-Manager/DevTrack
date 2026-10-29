@@ -8,7 +8,6 @@
     "node": ">=20"
   },
   "scripts": {
-    "setup": "npm run setup --prefix backend",
     "start": "node server.js",
     "dev": "nodemon server.js",
     "lint": "eslint .",
