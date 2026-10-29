@@ -1,3 +1,31 @@
+/**
+ * Auth state and token lifecycle (Issues #2, #3 and #16; FR-02, FR-03, FR-13).
+ *
+ * TOKEN HANDLING
+ *  - The 24 hour HS256 JWT comes back from POST /api/auth/login and is kept ONLY in browser
+ *    storage through services/tokenStore.js: localStorage when "Keep me signed in" is ticked,
+ *    otherwise sessionStorage (cleared when the tab closes). It is never put in the URL, in React
+ *    state, in the DOM, or in logs. This context holds only the user profile and the expiry time.
+ *  - services/api.js reads the token at request time and sends it as `Authorization: Bearer`.
+ *
+ * WHAT ENDS A SESSION (all go through endSession(), which clears storage and resets state)
+ *  1. The user clicks Sign out (logout below).
+ *  2. The token's expiry time passes: a timer signs the user out even if they do nothing.
+ *  3. Any authenticated request answers 401 (expired, tampered or revoked account): api.js calls
+ *     the handler registered here.
+ *  4. Another tab signs out: the `storage` event removes the session here too.
+ *  5. On page load, a stored session the server rejects is discarded.
+ *
+ * LOGOUT IS CLIENT SIDE BY DESIGN
+ *  JWTs are stateless, so the server cannot revoke one before it expires. POST /api/auth/logout
+ *  only acknowledges the request, and the real sign out is the client discarding the token
+ *  (see DEVIATIONS.md #10). The call is best effort: signing out never waits for it or fails
+ *  because of it.
+ *
+ * XSS RISK
+ *  Anything running on the page can read browser storage. The app therefore never renders
+ *  untrusted HTML (no dangerouslySetInnerHTML), and the backend strips markup from task text.
+ */
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AuthContext } from './authContextValue';
 import { authService } from '../services/authService';
