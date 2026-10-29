@@ -1,25 +1,63 @@
+import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import Alert from '../components/Alert';
 import Brand from '../components/Brand';
 import Button from '../components/Button';
+import TaskForm from '../components/TaskForm';
+import TaskItem from '../components/TaskItem';
+import TaskSummary from '../components/TaskSummary';
 import { useAuth } from '../hooks/useAuth';
 import { usePageTitle } from '../hooks/usePageTitle';
+import { useTasks } from '../hooks/useTasks';
+import { describeSubmitError } from '../utils/forms';
 
 const formatter = new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' });
 
 /**
- * Shell only: the task dashboard (Issue #8) and task CRUD (Issue #4) are separate work items.
- * What is real here: the protected route, the signed-in user and sign out (Issue #16 builds on this).
+ * Task dashboard (Issue #8): summary counters, the task list with create / edit / delete, and
+ * loading, empty and error states. Data comes from useTasks -> taskService -> api.js.
+ * The route itself is protected by ProtectedRoute (Issue #16).
  */
 export default function DashboardPage() {
   usePageTitle('Dashboard');
   const { user, session, logout } = useAuth();
   const navigate = useNavigate();
+  const { status, tasks, error, reload, create, update, remove } = useTasks();
+
+  // null = closed, { task: undefined } = creating, { task } = editing
+  const [form, setForm] = useState(null);
+  const [actionError, setActionError] = useState(null);
+
   const firstName = user.name.split(' ')[0];
+  const openCount = useMemo(() => tasks.filter((t) => t.status !== 'Completed').length, [tasks]);
 
   const handleSignOut = () => {
     logout();
     navigate('/login', { replace: true });
   };
+
+  const handleSave = async (payload) => {
+    if (form.task) await update(form.task.id, payload);
+    else await create(payload);
+    setActionError(null);
+    setForm(null);
+  };
+
+  const handleDelete = async (task) => {
+    setActionError(null);
+    try {
+      await remove(task.id);
+    } catch (err) {
+      setActionError(describeSubmitError(err));
+    }
+  };
+
+  const subtitle =
+    status === 'ready'
+      ? openCount === 0
+        ? 'Nothing open right now.'
+        : `${openCount} open ${openCount === 1 ? 'task' : 'tasks'}.`
+      : 'Loading your workspace.';
 
   return (
     <>
@@ -36,20 +74,65 @@ export default function DashboardPage() {
       <main className="page">
         <div>
           <h1 className="page__title">Hi, {firstName}.</h1>
-          <p className="page__sub">Your workspace is ready.</p>
+          <p className="page__sub">{subtitle}</p>
         </div>
+
+        {status === 'ready' && <TaskSummary tasks={tasks} />}
 
         <div className="workspace">
           <section className="panel" aria-labelledby="tasks-heading">
-            <h2 className="panel__title" id="tasks-heading">
-              Your tasks
-            </h2>
-            <div className="empty">
-              <p className="empty__title display">No tasks yet</p>
-              <p className="empty__body">
-                Tasks you create will appear here, grouped by status. Task creation is the next feature on the way.
-              </p>
+            <div className="panel__head">
+              <h2 className="panel__title" id="tasks-heading">
+                Your tasks
+              </h2>
+              <Button size="small" onClick={() => setForm({})}>
+                New task
+              </Button>
             </div>
+
+            {actionError && (
+              <Alert variant="error" title={actionError.title}>
+                {actionError.body}
+              </Alert>
+            )}
+
+            {status === 'loading' && (
+              <div className="tasks-loading" role="status" aria-live="polite">
+                <div className="loader__bar" aria-hidden="true" />
+                <span>Loading your tasks</span>
+              </div>
+            )}
+
+            {status === 'error' && (
+              <div className="banner">
+                <Alert variant="error" title={error.title}>
+                  {error.body}
+                </Alert>
+                <Button variant="outline" size="small" onClick={reload}>
+                  Try again
+                </Button>
+              </div>
+            )}
+
+            {status === 'ready' && tasks.length === 0 && (
+              <div className="empty">
+                <p className="empty__title display">No tasks found</p>
+                <p className="empty__body">Create your first task to start tracking your work.</p>
+                <div>
+                  <Button size="small" onClick={() => setForm({})}>
+                    Create a task
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {status === 'ready' && tasks.length > 0 && (
+              <ul className="tasks" aria-label="Tasks">
+                {tasks.map((task) => (
+                  <TaskItem key={task.id} task={task} onEdit={(t) => setForm({ task: t })} onDelete={handleDelete} />
+                ))}
+              </ul>
+            )}
           </section>
 
           <section className="panel" aria-labelledby="session-heading">
@@ -69,6 +152,8 @@ export default function DashboardPage() {
           </section>
         </div>
       </main>
+
+      {form && <TaskForm task={form.task} onSubmit={handleSave} onClose={() => setForm(null)} />}
     </>
   );
 }

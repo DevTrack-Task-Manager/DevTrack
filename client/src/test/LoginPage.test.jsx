@@ -2,6 +2,7 @@ import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { authService } from '../services/authService';
+import { taskService } from '../services/taskService';
 import { ApiError } from '../services/api';
 import { SESSION_KEY } from '../services/tokenStore';
 import { renderApp } from './helpers';
@@ -9,12 +10,16 @@ import { renderApp } from './helpers';
 vi.mock('../services/authService', () => ({
   authService: { login: vi.fn(), register: vi.fn(), me: vi.fn(), logout: vi.fn() },
 }));
+vi.mock('../services/taskService', () => ({
+  taskService: { list: vi.fn(), create: vi.fn(), update: vi.fn(), remove: vi.fn() },
+}));
 
 const future = () => new Date(Date.now() + 3600 * 1000).toISOString();
 const USER = { id: '65f1a2b3c4d5e6f7a8b9c0d1', name: 'Priya S', email: 'priya@demo.com' };
 
 beforeEach(() => {
   vi.mocked(authService.logout).mockResolvedValue({});
+  vi.mocked(taskService.list).mockResolvedValue({ tasks: [], count: 0 }); // the dashboard loads tasks on mount
 });
 
 describe('Login page', () => {
@@ -125,7 +130,7 @@ describe('Route guards and logout', () => {
 
     expect(await screen.findByRole('heading', { name: 'Hi, Priya.' })).toBeInTheDocument();
     expect(authService.me).toHaveBeenCalled();
-    expect(screen.getByText('No tasks yet')).toBeInTheDocument();
+    expect(await screen.findByText('No tasks found')).toBeInTheDocument();
   });
 
   it('ST_06: a stored token the server rejects sends the user to login with a notice', async () => {
