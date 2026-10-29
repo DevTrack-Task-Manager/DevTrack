@@ -12,7 +12,6 @@
     "lint": "npm run lint --prefix backend && npm run lint --prefix client",
     "test": "npm test --prefix backend && npm test --prefix client",
     "build": "npm run build --prefix client",
-    "setup": "node scripts/setup.js",
     "seed": "npm run seed --prefix backend"
   },
   "devDependencies": {
