@@ -1,0 +1,355 @@
+/* Task dashboard (Issue #8). Same rules as the rest of the app: flat, sharp, no shadows. */
+
+/* ───────── Danger button (delete confirmation) ───────── */
+.btn--danger {
+  background: var(--danger);
+  border-color: var(--danger);
+  color: var(--black);
+}
+
+.btn--danger:hover:not(:disabled) {
+  background: var(--bone);
+  border-color: var(--bone);
+}
+
+/* ───────── Summary counters ───────── */
+.summary__grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0;
+  margin: 0;
+  border: var(--border) solid var(--line);
+}
+
+.stat {
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 4px;
+  padding: 20px 24px;
+  border-right: var(--border) solid var(--line);
+}
+
+.stat:last-child {
+  border-right: 0;
+}
+
+.stat__label {
+  color: var(--ash);
+  font-size: 0.9375rem;
+  font-weight: 600;
+}
+
+.stat__value {
+  margin: 0;
+  font-size: clamp(2rem, 5vw, 3.25rem);
+}
+
+/* ───────── Panel header and states ───────── */
+.panel__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.tasks-loading {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 32px 0;
+  color: var(--ash);
+}
+
+.tasks-loading .loader__bar {
+  width: 100%;
+}
+
+.banner {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.banner .alert {
+  align-self: stretch;
+}
+
+/* ───────── Task list ───────── */
+.tasks {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.task {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 16px 16px 20px;
+  border: var(--border) solid var(--line);
+  border-left-width: 8px;
+  background: var(--graphite);
+}
+
+/* Priority also has a text badge, so the edge colour is a second cue and never the only one. */
+.task--priority-high {
+  border-left-color: var(--danger);
+}
+
+.task--priority-medium {
+  border-left-color: var(--bone);
+}
+
+.task--priority-low {
+  border-left-color: var(--line-strong);
+}
+
+.task__body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.task__title {
+  font-size: 1.125rem;
+  overflow-wrap: anywhere;
+}
+
+.task--done .task__title {
+  color: var(--ash);
+  text-decoration: line-through;
+  text-decoration-thickness: 2px;
+}
+
+.task__description {
+  max-width: 64ch;
+  color: var(--ash);
+  overflow-wrap: anywhere;
+  white-space: pre-line;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.task__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+}
+
+.task__due {
+  font-size: 0.9375rem;
+  font-weight: 500;
+}
+
+.task__overdue {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--danger);
+  font-size: 0.9375rem;
+  font-weight: 700;
+}
+
+.task__overdue::before {
+  content: '!';
+  width: 18px;
+  height: 18px;
+  background: var(--danger);
+  color: var(--black);
+  font-size: 0.8125rem;
+  font-weight: 800;
+  line-height: 18px;
+  text-align: center;
+}
+
+.task__actions {
+  display: flex;
+  flex: none;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.task__confirm {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.task__confirm-text {
+  font-weight: 600;
+}
+
+/* ───────── Badges ───────── */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 2px 10px;
+  border: var(--border) solid var(--line-strong);
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.5;
+  white-space: nowrap;
+}
+
+.badge__glyph {
+  width: 12px;
+  height: 12px;
+  border: 2px solid currentColor;
+}
+
+/* Status: empty square, top-half filled square, filled square. */
+.badge--status-pending {
+  color: var(--ash);
+}
+
+.badge--status-in-progress {
+  border-color: var(--amber);
+  color: var(--amber);
+}
+
+.badge--status-in-progress .badge__glyph {
+  border-top-width: 6px;
+}
+
+.badge--status-completed {
+  border-color: var(--green);
+  color: var(--green);
+}
+
+.badge--status-completed .badge__glyph {
+  background: currentColor;
+}
+
+.badge--priority-high {
+  border-color: var(--danger);
+  color: var(--danger);
+}
+
+.badge--priority-medium {
+  border-color: var(--bone);
+  color: var(--bone);
+}
+
+.badge--priority-low {
+  color: var(--ash);
+}
+
+/* ───────── Select and textarea ───────── */
+.select {
+  width: 100%;
+  cursor: pointer;
+}
+
+.textarea {
+  width: 100%;
+  min-height: 112px;
+  padding: 12px 14px;
+  line-height: 1.5;
+  resize: vertical;
+}
+
+.field__count {
+  align-self: flex-end;
+}
+
+/* ───────── Modal ───────── */
+.modal {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: clamp(0px, 6vh, 64px) 0;
+  background: rgb(0 0 0 / 0.86);
+  overflow-y: auto;
+}
+
+.modal__panel {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: min(560px, 100%);
+  padding: clamp(20px, 4vw, 32px);
+  border: var(--border) solid var(--bone);
+  background: var(--coal);
+}
+
+.modal__title {
+  font-size: 1.5rem;
+}
+
+.task-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.modal__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+@media (max-width: 860px) {
+  .summary__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .stat:nth-child(2) {
+    border-right: 0;
+  }
+
+  .stat:nth-child(-n + 2) {
+    border-bottom: var(--border) solid var(--line);
+  }
+}
+
+@media (max-width: 560px) {
+  .task {
+    flex-direction: column;
+  }
+
+  .task__actions,
+  .task__confirm {
+    justify-content: flex-start;
+  }
+
+  .form-row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .modal {
+    padding: 0;
+  }
+
+  .modal__panel {
+    min-height: 100%;
+    border-width: 0;
+  }
+
+  .modal__actions .btn {
+    flex: 1;
+  }
+}
