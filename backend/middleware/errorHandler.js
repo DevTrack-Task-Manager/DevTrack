@@ -34,6 +34,14 @@ function errorHandler(err, req, res, _next) {
   } else if (err.type === 'entity.too.large') {
     status = 413;
     message = 'Request body is too large';
+  } else if (err.type === 'charset.unsupported' || err.type === 'encoding.unsupported') {
+    status = 415;
+    message = 'Unsupported content encoding';
+  } else if (Number.isInteger(err.status) && err.status >= 400 && err.status < 500) {
+    // Any other client-side failure raised by the framework (aborted upload, bad size header...).
+    // The framework's own message is never forwarded; it could describe internals.
+    status = err.status;
+    message = 'Invalid request';
   } else if (err.name === 'ValidationError' && err.errors) {
     status = 400;
     fields = mongooseFields(err);

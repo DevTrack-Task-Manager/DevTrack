@@ -5,17 +5,15 @@ const AppError = require('../utils/AppError');
 const asyncHandler = require('../utils/asyncHandler');
 
 const TASK_NOT_FOUND = 'Task not found';
-const OBJECT_ID = /^[a-f\d]{24}$/i;
 
 /**
  * Builds the query filter for a single task. EVERY single-task query goes through here, so the
- * owner is always part of the filter (FR-11). A task that does not exist, belongs to someone
- * else, or has a malformed id all produce the same 404, so ids cannot be probed.
+ * owner is always part of the filter (FR-11). The id has already been format-checked by
+ * validate.params(validateTaskParams) (400 when malformed). A task that does not exist or that
+ * belongs to someone else produces the same 404, so ids cannot be probed.
  */
 function ownedFilter(req) {
-  const { id } = req.params;
-  if (!OBJECT_ID.test(id)) throw AppError.notFound(TASK_NOT_FOUND);
-  return { _id: id, userId: req.user.id };
+  return { _id: req.validatedParams.id, userId: req.user.id };
 }
 
 /** GET /api/tasks (FR-05): the signed-in user's tasks, newest first. */

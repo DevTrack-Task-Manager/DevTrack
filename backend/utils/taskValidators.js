@@ -4,7 +4,7 @@ const { sanitizeText } = require('./validators');
 const { TASK_STATUSES, TASK_PRIORITIES, TITLE_MAX, DESCRIPTION_MAX } = require('../models/Task');
 
 /**
- * Pure validators for task payloads (TDD 3.2, FR-04, FR-06, FR-08, FR-09). Same contract as
+ * Pure validators for task payloads and route parameters (TDD 3.2, FR-04, FR-06, FR-08, FR-09, FR-12). Same contract as
  * utils/validators.js: `(body) => ({ value, errors })`, used through middleware/validate.js.
  *
  * Only whitelisted fields ever reach `value`. `userId`, `_id`, `createdAt` and anything else a
@@ -16,6 +16,7 @@ const { TASK_STATUSES, TASK_PRIORITIES, TITLE_MAX, DESCRIPTION_MAX } = require('
 // eslint-disable-next-line no-control-regex
 const CONTROL_CHARS_KEEP_NEWLINES = /[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g;
 const HTML_TAGS = /<\/?[a-z!][^>]*>/gi;
+const OBJECT_ID = /^[a-f\d]{24}$/i;
 const DATE_ONLY = /^\d{4}-\d{2}-\d{2}$/;
 const ISO_DATE_TIME = /^\d{4}-\d{2}-\d{2}T[\d:.]+(Z|[+-]\d{2}:\d{2})?$/;
 
@@ -127,4 +128,18 @@ function validateUpdateTask(body) {
   return { value, errors };
 }
 
-module.exports = { sanitizeDescription, validateCreateTask, validateUpdateTask };
+/**
+ * Route parameter `:id` (FR-12). Anything that is not a 24 character hex ObjectId is a 400,
+ * so a malformed value never reaches Mongoose (no CastError, nothing to probe).
+ * A well-formed id that does not exist, or belongs to someone else, is still a 404 in the
+ * controller: the two cases are indistinguishable to the caller (FR-11).
+ */
+function validateTaskParams(params) {
+  const source = asObject(params);
+  if (typeof source.id !== 'string' || !OBJECT_ID.test(source.id)) {
+    return { value: {}, errors: { id: 'Invalid task id' } };
+  }
+  return { value: { id: source.id }, errors: {} };
+}
+
+module.exports = { sanitizeDescription, validateCreateTask, validateUpdateTask, validateTaskParams };
