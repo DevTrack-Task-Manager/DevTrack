@@ -27,6 +27,7 @@ export default function DashboardPage() {
   // null = closed, { task: undefined } = creating, { task } = editing
   const [form, setForm] = useState(null);
   const [actionError, setActionError] = useState(null);
+  const [notice, setNotice] = useState('');
 
   const firstName = user.name.split(' ')[0];
   const openCount = useMemo(() => tasks.filter((t) => t.status !== 'Completed').length, [tasks]);
@@ -47,6 +48,18 @@ export default function DashboardPage() {
     setActionError(null);
     try {
       await remove(task.id);
+    } catch (err) {
+      setActionError(describeSubmitError(err));
+    }
+  };
+
+  // Issue #5: one-click status changes. The list only changes after the server confirms.
+  const handleStatusChange = async (task, nextStatus) => {
+    setActionError(null);
+    setNotice('');
+    try {
+      const saved = await update(task.id, { status: nextStatus });
+      setNotice(`${saved.title} is now ${saved.status}.`);
     } catch (err) {
       setActionError(describeSubmitError(err));
     }
@@ -90,6 +103,12 @@ export default function DashboardPage() {
               </Button>
             </div>
 
+            {notice && (
+              <p className="visually-hidden" role="status" aria-live="polite">
+                {notice}
+              </p>
+            )}
+
             {actionError && (
               <Alert variant="error" title={actionError.title}>
                 {actionError.body}
@@ -129,7 +148,13 @@ export default function DashboardPage() {
             {status === 'ready' && tasks.length > 0 && (
               <ul className="tasks" aria-label="Tasks">
                 {tasks.map((task) => (
-                  <TaskItem key={task.id} task={task} onEdit={(t) => setForm({ task: t })} onDelete={handleDelete} />
+                  <TaskItem
+                    key={task.id}
+                    task={task}
+                    onEdit={(t) => setForm({ task: t })}
+                    onDelete={handleDelete}
+                    onStatusChange={handleStatusChange}
+                  />
                 ))}
               </ul>
             )}
