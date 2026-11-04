@@ -29,4 +29,7 @@ Add to this file as you go (build plan, Phase E).
 | 22 | Route guard file name | Issue #16 mentions `ProtectedRoute.jsx` | `ProtectedRoute` and `GuestRoute` live together in `client/src/components/RouteGuards.jsx` | Already built that way with Issue #3 and imported by `App.jsx`; splitting it would only add churn |
 | 23 | Validation layout | Issue #10 asks for `middleware/validate.js` | `validate(fn)` checks the body; `validate.params(fn)` and `validate.query(fn)` check params and query. Results land in `req.validated`, `req.validatedParams`, `req.validatedQuery` | One pattern for every route; controllers never read raw input |
 | 24 | Error body | Issue #10 / TDD: `{ "error": "message" }` | Same, plus the optional `fields` map from row 8. Framework 4xx errors (unsupported charset, aborted upload) are mapped to a generic message | Stack traces, driver messages and paths are never sent; they are logged server side for 5xx only |
+<<<<<<< HEAD
 | 25 | Status transitions | Issue #5 lists three statuses and no transition rules | Any status can be set from any other, by API or form. The dashboard cards add one-click shortcuts (Start, Complete, Back to Pending, Reopen) that send `PUT /api/tasks/:id { status }` | No rule was specified, so none is invented. The shortcuts are UI only; the server stays the authority and rejects unsupported values (row 8 error shape) |
+=======
+>>>>>>> bbe6a8469ebb096782e81c46260ee6ff4815ed1f
