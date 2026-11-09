@@ -65,6 +65,18 @@ export default function DashboardPage() {
     }
   };
 
+  // Issue #6: change priority from the card. Same rules as status changes.
+  const handlePriorityChange = async (task, nextPriority) => {
+    setActionError(null);
+    setNotice('');
+    try {
+      const saved = await update(task.id, { priority: nextPriority });
+      setNotice(`${saved.title} now has ${saved.priority} priority.`);
+    } catch (err) {
+      setActionError(describeSubmitError(err));
+    }
+  };
+
   const subtitle =
     status === 'ready'
       ? openCount === 0
@@ -154,6 +166,7 @@ export default function DashboardPage() {
                     onEdit={(t) => setForm({ task: t })}
                     onDelete={handleDelete}
                     onStatusChange={handleStatusChange}
+                    onPriorityChange={handlePriorityChange}
                   />
                 ))}
               </ul>
