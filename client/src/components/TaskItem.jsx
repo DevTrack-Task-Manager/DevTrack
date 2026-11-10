@@ -1,20 +1,21 @@
 import { useState } from 'react';
 import Button from './Button';
 import { PriorityBadge, StatusBadge } from './TaskBadges';
-import { STATUS_ACTIONS } from '../constants/tasks';
+import { PRIORITIES, STATUS_ACTIONS } from '../constants/tasks';
 import { formatDueDate, isOverdue } from '../utils/taskDates';
 
 /**
  * One task. Delete asks for confirmation inline, so a stray click never removes anything.
- * `onDelete` and `onStatusChange(task, nextStatus)` should return promises; errors are reported
+ * `onDelete`, `onStatusChange(task, nextStatus)` and `onPriorityChange(task, nextPriority)` should return promises; errors are reported
  * by the parent, and this component only resets its own busy state.
- * The status buttons are the quick workflow (Issue #5); the current status is always shown as
- * text in the badge, never by colour alone.
+ * The status buttons are the quick workflow (Issue #5) and the priority selector is the quick
+ * priority change (Issue #6). Both values are always shown as text in the badges, never by colour alone.
  */
-export default function TaskItem({ task, onEdit, onDelete, onStatusChange }) {
+export default function TaskItem({ task, onEdit, onDelete, onStatusChange, onPriorityChange }) {
   const [confirming, setConfirming] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [movingTo, setMovingTo] = useState(null); // status being saved, or null
+  const [savingPriority, setSavingPriority] = useState(false);
   const overdue = isOverdue(task);
   const due = formatDueDate(task.dueDate);
 
@@ -34,6 +35,17 @@ export default function TaskItem({ task, onEdit, onDelete, onStatusChange }) {
       await onStatusChange(task, next);
     } finally {
       setMovingTo(null);
+    }
+  };
+
+  const changePriority = async (event) => {
+    const next = event.target.value;
+    if (next === task.priority) return;
+    setSavingPriority(true);
+    try {
+      await onPriorityChange(task, next);
+    } finally {
+      setSavingPriority(false);
     }
   };
 
@@ -81,6 +93,22 @@ export default function TaskItem({ task, onEdit, onDelete, onStatusChange }) {
                   </Button>
                 ))}
               </div>
+            )}
+            {onPriorityChange && (
+              <select
+                className="input select select--compact"
+                aria-label={`Priority for ${task.title}`}
+                value={task.priority}
+                disabled={savingPriority}
+                aria-busy={savingPriority ? 'true' : undefined}
+                onChange={changePriority}
+              >
+                {PRIORITIES.map((priority) => (
+                  <option key={priority} value={priority}>
+                    {priority}
+                  </option>
+                ))}
+              </select>
             )}
             <Button variant="outline" size="small" aria-label={`Edit ${task.title}`} onClick={() => onEdit(task)}>
               Edit

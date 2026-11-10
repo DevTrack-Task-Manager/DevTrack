@@ -353,3 +353,11 @@
     flex: 1;
   }
 }
+
+/* ───────── Quick priority selector on a task card (Issue #6) ───────── */
+.select--compact {
+  flex: none;
+  min-height: 36px;
+  padding: 0 10px;
+  font-size: 0.9375rem;
+}
