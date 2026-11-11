@@ -1,10 +1,26 @@
+/* App chrome, hero, panels and profile. Flat and sharp; hard offset shadows only for emphasis. */
 .topbar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  padding: 14px clamp(16px, 4vw, 40px);
+  padding: 12px clamp(16px, 4vw, 40px);
   border-bottom: var(--border) solid var(--line);
+  background: var(--black);
+}
+
+.topbar__left,
+.topbar__user {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.topbar__user {
+  gap: 12px;
 }
 
 .topbar .brand__mark {
@@ -12,27 +28,84 @@
   height: 28px;
 }
 
-.topbar__user {
+.topbar__nav {
+  display: flex;
+  gap: 4px;
+}
+
+.topbar__link {
+  padding: 8px 12px;
+  border-bottom: 3px solid transparent;
+  color: var(--ash);
+  font-weight: 600;
+  text-decoration: none;
+  transition: color var(--fast) var(--ease), border-color var(--fast) var(--ease);
+}
+
+.topbar__link:hover {
+  color: var(--bone);
+}
+
+.topbar__link.active {
+  border-bottom-color: var(--green);
+  color: var(--bone);
+}
+
+.topbar__account {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 10px;
+  padding: 4px 10px 4px 4px;
+  border: var(--border) solid transparent;
+  color: var(--bone);
+  text-decoration: none;
+  transition: border-color var(--fast) var(--ease);
+}
+
+.topbar__account:hover {
+  border-color: var(--line-strong);
 }
 
 .topbar__name {
-  max-width: 24ch;
+  max-width: 20ch;
   overflow: hidden;
   font-weight: 600;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
+/* ───────── Avatar ───────── */
+.avatar {
+  display: inline-grid;
+  flex: none;
+  place-items: center;
+  background: var(--green);
+  color: var(--black);
+  font-family: var(--font-display);
+  font-weight: 800;
+  line-height: 1;
+}
+
+.avatar--small {
+  width: 34px;
+  height: 34px;
+  font-size: 0.9375rem;
+}
+
+.avatar--large {
+  width: clamp(72px, 12vw, 104px);
+  height: clamp(72px, 12vw, 104px);
+  font-size: clamp(1.75rem, 5vw, 2.75rem);
+}
+
+/* ───────── Page and hero ───────── */
 .page {
   display: flex;
   flex-direction: column;
-  gap: 40px;
-  max-width: 1120px;
+  gap: 28px;
+  max-width: 1240px;
   margin: 0 auto;
-  padding: clamp(28px, 5vw, 64px) clamp(16px, 4vw, 40px);
+  padding: clamp(24px, 4vw, 48px) clamp(16px, 4vw, 40px) 72px;
 }
 
 .page__title {
@@ -43,33 +116,85 @@
   margin-top: 12px;
   color: var(--ash);
   font-size: 1.125rem;
+  overflow-wrap: anywhere;
 }
 
-.workspace {
+.hero {
   display: grid;
-  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
-  gap: 24px;
-  align-items: start;
+  grid-template-columns: minmax(0, 1fr) minmax(240px, 340px);
+  align-items: end;
+  gap: 32px;
+  padding: clamp(20px, 4vw, 40px);
+  border: var(--border) solid var(--green-deep);
+  border-left: 10px solid var(--green);
+  background: var(--green-wash);
 }
 
+.hero--profile {
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+}
+
+.hero__eyebrow {
+  margin: 0 0 8px;
+  color: var(--green);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.hero__progress {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.hero__percent {
+  margin: 0;
+  color: var(--green);
+  font-size: clamp(2.5rem, 6vw, 4rem);
+  line-height: 1;
+}
+
+.hero__caption {
+  margin: 0;
+  color: var(--ash);
+  font-size: 0.9375rem;
+}
+
+.progress {
+  height: 16px;
+  border: var(--border) solid var(--green-deep);
+  background: var(--black);
+}
+
+.progress__fill {
+  display: block;
+  height: 100%;
+  background: var(--green);
+  transition: width 400ms var(--ease);
+}
+
+/* ───────── Panels ───────── */
 .panel {
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  padding: 24px;
+  gap: 18px;
+  padding: clamp(18px, 3vw, 28px);
   border: var(--border) solid var(--line);
   background: var(--coal);
 }
 
 .panel__title {
-  font-size: 1.25rem;
+  font-size: 1.5rem;
 }
 
 .empty {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  padding: 40px 24px;
+  padding: 48px 24px;
   border: var(--border) dashed var(--line-strong);
 }
 
@@ -88,6 +213,11 @@
   margin: 0;
 }
 
+.facts--grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px 24px;
+}
+
 .facts dt {
   color: var(--ash);
   font-size: 0.875rem;
@@ -95,8 +225,23 @@
 
 .facts dd {
   margin: 2px 0 0;
+  font-size: 1.125rem;
   font-weight: 600;
   overflow-wrap: anywhere;
+}
+
+/* ───────── Profile ───────── */
+.profile {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+  align-items: start;
+}
+
+.form__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
 }
 
 .notfound {
@@ -116,11 +261,31 @@
 }
 
 @media (max-width: 860px) {
-  .workspace {
+  .hero,
+  .hero--profile {
+    grid-template-columns: minmax(0, 1fr);
+    align-items: start;
+  }
+
+  .profile {
     grid-template-columns: minmax(0, 1fr);
   }
 
   .topbar__name {
     display: none;
+  }
+}
+
+@media (max-width: 560px) {
+  .topbar__left {
+    gap: 8px;
+  }
+
+  .brand__name {
+    display: none;
+  }
+
+  .facts--grid {
+    grid-template-columns: minmax(0, 1fr);
   }
 }

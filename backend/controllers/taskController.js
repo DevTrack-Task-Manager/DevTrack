@@ -1,6 +1,7 @@
 'use strict';
 
 const Task = require('../models/Task');
+const { TASK_STATUSES, TASK_PRIORITIES } = Task;
 const AppError = require('../utils/AppError');
 const asyncHandler = require('../utils/asyncHandler');
 
@@ -16,10 +17,43 @@ function ownedFilter(req) {
   return { _id: req.validatedParams.id, userId: req.user.id };
 }
 
-/** GET /api/tasks (FR-05): the signed-in user's tasks, newest first. */
+/**
+ * Counts for the dashboard cards: the user's WHOLE list, never narrowed by the filters, so the
+ * numbers stay put while the list below is filtered. Scoped by owner like every other query.
+ */
+async function summarize(ownerId) {
+  const [facets] = await Task.aggregate([
+    { $match: { userId: ownerId } },
+    {
+      $facet: {
+        status: [{ $group: { _id: '$status', count: { $sum: 1 } } }],
+        priority: [{ $group: { _id: '$priority', count: { $sum: 1 } } }],
+      },
+    },
+  ]);
+  const tally = (values, rows) =>
+    Object.fromEntries(values.map((value) => [value, rows.find((row) => row._id === value)?.count ?? 0]));
+  const byStatus = tally(TASK_STATUSES, facets.status);
+  return {
+    total: Object.values(byStatus).reduce((sum, count) => sum + count, 0),
+    byStatus,
+    byPriority: tally(TASK_PRIORITIES, facets.priority),
+  };
+}
+
+/**
+ * GET /api/tasks (FR-05, FR-10): the signed-in user's tasks, newest first, optionally narrowed by
+ * ?status= and/or ?priority= (both together = AND). The owner is ALWAYS part of the query and is
+ * spread last, so no filter value can ever override it (FR-11). Filter values come from
+ * validate.query(validateTaskQuery), so they are enum strings, never objects.
+ */
 const listTasks = asyncHandler(async (req, res) => {
-  const tasks = await Task.find({ userId: req.user.id }).sort({ createdAt: -1, _id: -1 });
-  res.json({ tasks, count: tasks.length });
+  const filter = { ...req.validatedQuery, userId: req.user.id };
+  const [tasks, summary] = await Promise.all([
+    Task.find(filter).sort({ createdAt: -1, _id: -1 }),
+    summarize(req.user._id),
+  ]);
+  res.json({ tasks, count: tasks.length, summary });
 });
 
 /** POST /api/tasks (FR-04): the owner always comes from the verified token, never the body. */

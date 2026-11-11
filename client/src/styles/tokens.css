@@ -1,4 +1,4 @@
-/* DevTrack design tokens. Flat, 2D, sharp: no radius, no shadows, no gradients. */
+/* DevTrack design tokens. Flat, 2D, sharp: no radius, no blur, no gradients. Hard offset "shadows" are used only to lift a hovered or selected card. */
 :root {
   color-scheme: dark;
 
@@ -23,6 +23,7 @@
   --danger: #ff6b5c;
   --danger-wash: #2a0f0c;
   --amber: #ffc247;
+  --amber-wash: #261c06;
 
   --font-display: 'Archivo Variable', 'Archivo', 'Helvetica Neue', Arial, sans-serif;
   --font-body: 'IBM Plex Sans', 'Segoe UI', system-ui, -apple-system, sans-serif;

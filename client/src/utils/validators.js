@@ -44,6 +44,16 @@ export function validateLogin({ email, password }) {
   return compact({ email: checkEmail(email), password: checkExistingPassword(password) });
 }
 
+/** Profile edit: name always; the current password only when the email is being changed. */
+export function validateProfile({ name, email, currentPassword }, currentUser) {
+  const emailChanged = email.trim().toLowerCase() !== currentUser.email.toLowerCase();
+  return compact({
+    name: checkName(name),
+    email: checkEmail(email),
+    currentPassword: emailChanged ? checkExistingPassword(currentPassword) : '',
+  });
+}
+
 /**
  * Rough strength score for the meter (display only, never blocks submission beyond the minimum).
  * @returns {{ level: 0|1|2|3, label: string }}

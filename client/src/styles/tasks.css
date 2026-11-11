@@ -12,25 +12,52 @@
   border-color: var(--bone);
 }
 
-/* ───────── Summary counters ───────── */
+/* ───────── Summary cards (also filter shortcuts) ───────── */
 .summary__grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 0;
+  gap: 16px;
   margin: 0;
-  border: var(--border) solid var(--line);
 }
 
 .stat {
+  --accent: var(--line-strong);
+  position: relative;
   display: flex;
   flex-direction: column-reverse;
   gap: 4px;
   padding: 20px 24px;
-  border-right: var(--border) solid var(--line);
+  border: var(--border) solid var(--line);
+  border-top: 8px solid var(--accent);
+  background: var(--coal);
+  transition: transform var(--fast) var(--ease), box-shadow var(--fast) var(--ease), background var(--fast) var(--ease);
 }
 
-.stat:last-child {
-  border-right: 0;
+.stat--total {
+  --accent: var(--bone);
+}
+
+.stat--pending {
+  --accent: var(--ash);
+}
+
+.stat--progress {
+  --accent: var(--amber);
+}
+
+.stat--done {
+  --accent: var(--green);
+}
+
+.stat:hover,
+.stat.is-active {
+  transform: translate(-3px, -3px);
+  box-shadow: 6px 6px 0 var(--accent);
+}
+
+.stat.is-active {
+  border-color: var(--accent);
+  background: var(--graphite);
 }
 
 .stat__label {
@@ -39,9 +66,31 @@
   font-weight: 600;
 }
 
+.stat.is-active .stat__label {
+  color: var(--bone);
+}
+
 .stat__value {
   margin: 0;
-  font-size: clamp(2rem, 5vw, 3.25rem);
+  font-size: clamp(2.25rem, 5vw, 3.75rem);
+  line-height: 1;
+}
+
+/* One invisible button covers the whole card so it is a large, keyboard reachable target. */
+.stat__hit {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.stat__hit:focus-visible {
+  outline: 3px solid var(--green);
+  outline-offset: 4px;
 }
 
 /* ───────── Panel header and states ───────── */
@@ -79,7 +128,7 @@
 .tasks {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 14px;
   margin: 0;
   padding: 0;
   list-style: none;
@@ -87,13 +136,18 @@
 
 .task {
   display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
+  flex-direction: column;
   gap: 16px;
-  padding: 16px 16px 16px 20px;
+  padding: 18px 20px 16px;
   border: var(--border) solid var(--line);
   border-left-width: 8px;
   background: var(--graphite);
+  transition: transform var(--fast) var(--ease), box-shadow var(--fast) var(--ease);
+}
+
+.task:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 4px 4px 0 var(--line-strong);
 }
 
 /* Priority also has a text badge, so the edge colour is a second cue and never the only one. */
@@ -109,16 +163,35 @@
   border-left-color: var(--line-strong);
 }
 
-.task__body {
+.task--overdue {
+  border-top-color: var(--danger);
+  border-right-color: var(--danger);
+  border-bottom-color: var(--danger);
+}
+
+.task--done {
+  background: var(--coal);
+}
+
+.task__main {
   display: flex;
-  flex: 1;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
   min-width: 0;
 }
 
+.task__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px 16px;
+}
+
 .task__title {
-  font-size: 1.125rem;
+  flex: 1 1 20ch;
+  min-width: 0;
+  font-size: 1.25rem;
   overflow-wrap: anywhere;
 }
 
@@ -128,8 +201,14 @@
   text-decoration-thickness: 2px;
 }
 
+.task__badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
 .task__description {
-  max-width: 64ch;
+  max-width: 72ch;
   color: var(--ash);
   overflow-wrap: anywhere;
   white-space: pre-line;
@@ -143,7 +222,7 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 8px 12px;
+  gap: 8px 16px;
 }
 
 .task__due {
@@ -172,19 +251,46 @@
   text-align: center;
 }
 
-.task__actions {
+/* Actions sit on their own row, so they never squeeze the title into a narrow column. */
+.task__toolbar {
   display: flex;
-  flex: none;
   flex-wrap: wrap;
-  justify-content: flex-end;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 16px;
+  padding-top: 14px;
+  border-top: var(--border) solid var(--line);
+}
+
+.task__quick,
+.task__manage,
+.task__group {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
   gap: 8px;
+}
+
+.task__quick {
+  gap: 8px 16px;
+}
+
+.task__priority {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.task__priority-caption {
+  color: var(--ash);
+  font-size: 0.875rem;
+  font-weight: 600;
 }
 
 .task__confirm {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  justify-content: flex-end;
   gap: 8px;
 }
 
@@ -312,28 +418,61 @@
   gap: 12px;
 }
 
+/* ───────── Quick priority selector on a task card (Issue #6) ───────── */
+.select--compact {
+  flex: none;
+  width: auto;
+  min-width: 118px;
+  min-height: 36px;
+  padding: 0 10px;
+  font-size: 0.9375rem;
+}
+
+/* ───────── List filters, search and sort (Issue #7) ───────── */
+.filters {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) repeat(3, minmax(0, 1fr)) auto;
+  align-items: end;
+  gap: 12px;
+  padding: 16px;
+  border: var(--border) dashed var(--line);
+  background: var(--black);
+}
+
+.results {
+  margin: 0;
+  color: var(--ash);
+  font-size: 0.9375rem;
+}
+
+@media (max-width: 1000px) {
+  .filters {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .filters__search {
+    grid-column: 1 / -1;
+  }
+}
+
 @media (max-width: 860px) {
   .summary__grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
-
-  .stat:nth-child(2) {
-    border-right: 0;
-  }
-
-  .stat:nth-child(-n + 2) {
-    border-bottom: var(--border) solid var(--line);
-  }
 }
 
 @media (max-width: 560px) {
-  .task {
-    flex-direction: column;
+  .filters {
+    grid-template-columns: minmax(0, 1fr);
   }
 
-  .task__actions,
-  .task__confirm {
-    justify-content: flex-start;
+  .task__toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .task__manage .btn {
+    flex: 1;
   }
 
   .form-row {
@@ -354,10 +493,16 @@
   }
 }
 
-/* ───────── Quick priority selector on a task card (Issue #6) ───────── */
-.select--compact {
-  flex: none;
-  min-height: 36px;
-  padding: 0 10px;
-  font-size: 0.9375rem;
+@media (prefers-reduced-motion: reduce) {
+  .stat,
+  .task,
+  .progress__fill {
+    transition: none;
+  }
+
+  .stat:hover,
+  .stat.is-active,
+  .task:hover {
+    transform: none;
+  }
 }

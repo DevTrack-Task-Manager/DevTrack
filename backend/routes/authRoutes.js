@@ -5,7 +5,7 @@ const controller = require('../controllers/authController');
 const validate = require('../middleware/validate');
 const { authenticate } = require('../middleware/authMiddleware');
 const { createLoginLimiter, createRegisterLimiter } = require('../middleware/rateLimiter');
-const { validateRegistration, validateLogin } = require('../utils/validators');
+const { validateRegistration, validateLogin, validateProfileUpdate } = require('../utils/validators');
 
 /** @param {{ windowMs: number, loginLimit: number, registerLimit: number }} limits */
 function createAuthRouter(limits) {
@@ -15,6 +15,7 @@ function createAuthRouter(limits) {
   router.post('/login', createLoginLimiter(limits), validate(validateLogin), controller.login);
   router.post('/logout', authenticate, controller.logout);
   router.get('/me', authenticate, controller.me);
+  router.put('/me', authenticate, validate(validateProfileUpdate), controller.updateMe);
 
   return router;
 }
