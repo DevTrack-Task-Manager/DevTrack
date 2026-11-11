@@ -3,6 +3,7 @@ import { GuestRoute, ProtectedRoute } from './components/RouteGuards';
 import DashboardPage from './pages/DashboardPage';
 import LoginPage from './pages/LoginPage';
 import NotFoundPage from './pages/NotFoundPage';
+import ProfilePage from './pages/ProfilePage';
 import RegisterPage from './pages/RegisterPage';
 
 export default function App() {
@@ -15,6 +16,7 @@ export default function App() {
 
       <Route element={<ProtectedRoute />}>
         <Route path="/dashboard" element={<DashboardPage />} />
+        <Route path="/profile" element={<ProfilePage />} />
       </Route>
 
       <Route path="/" element={<Navigate to="/dashboard" replace />} />

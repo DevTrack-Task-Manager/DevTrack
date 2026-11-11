@@ -7,6 +7,7 @@ const { hashPassword, comparePassword, getDummyHash } = require('../utils/passwo
 const { signToken } = require('../utils/token');
 
 const EMAIL_TAKEN = 'Email already registered'; // Test Plan IT_02
+const WRONG_PASSWORD = 'Current password is incorrect';
 const INVALID_CREDENTIALS = 'Invalid credentials'; // Test Plan IT_05 / IT_06 (deliberately generic)
 
 /** POST /api/auth/register (FR-01, SEC-01) */
@@ -61,6 +62,46 @@ const me = (req, res) => {
 };
 
 /**
+ * PUT /api/auth/me (protected): edit name and / or email.
+ * Changing the email changes the login identifier, so it needs the current password. A wrong
+ * password is a 400, never a 401: a 401 would make the client discard a perfectly good session.
+ */
+const updateMe = asyncHandler(async (req, res) => {
+  const { name, email, currentPassword } = req.validated;
+  const changes = {};
+  if (name !== undefined && name !== req.user.name) changes.name = name;
+
+  if (email !== undefined && email !== req.user.email) {
+    if (currentPassword === undefined) {
+      throw AppError.badRequest('Enter your current password to change your email', {
+        currentPassword: 'Enter your current password to change your email',
+      });
+    }
+    const account = await User.findById(req.user._id).select('+password');
+    if (!(await comparePassword(currentPassword, account.password))) {
+      throw AppError.badRequest(WRONG_PASSWORD, { currentPassword: WRONG_PASSWORD });
+    }
+    if (await User.exists({ email, _id: { $ne: req.user._id } })) {
+      throw AppError.conflict(EMAIL_TAKEN, { email: EMAIL_TAKEN });
+    }
+    changes.email = email;
+  }
+
+  if (!Object.keys(changes).length) {
+    return res.json({ message: 'No changes', user: req.user.toJSON() });
+  }
+
+  let updated;
+  try {
+    updated = await User.findOneAndUpdate({ _id: req.user._id }, { $set: changes }, { new: true, runValidators: true });
+  } catch (err) {
+    if (err.code === 11000) throw AppError.conflict(EMAIL_TAKEN, { email: EMAIL_TAKEN });
+    throw err;
+  }
+  return res.json({ message: 'Profile updated', user: updated.toJSON() });
+});
+
+/**
  * POST /api/auth/logout (protected, FR-13)
  * JWTs are stateless, so this does NOT revoke the token. The client discards it.
  * The message is deliberately honest about that (Issue #16 acceptance criteria).
@@ -71,4 +112,4 @@ const logout = (_req, res) => {
   });
 };
 
-module.exports = { register, login, me, logout };
+module.exports = { register, login, me, updateMe, logout };

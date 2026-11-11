@@ -52,19 +52,34 @@ export default function TaskItem({ task, onEdit, onDelete, onStatusChange, onPri
   const statusActions = onStatusChange ? STATUS_ACTIONS[task.status] ?? [] : [];
 
   return (
-    <li className={`task task--priority-${task.priority.toLowerCase()} ${task.status === 'Completed' ? 'task--done' : ''}`}>
-      <div className="task__body">
-        <h3 className="task__title">{task.title}</h3>
-        {task.description && <p className="task__description">{task.description}</p>}
-        <div className="task__meta">
-          <StatusBadge status={task.status} />
-          <PriorityBadge priority={task.priority} />
-          {due && <span className="task__due">Due {due}</span>}
-          {overdue && <span className="task__overdue">Overdue</span>}
+    <li
+      className={[
+        'task',
+        `task--priority-${task.priority.toLowerCase()}`,
+        task.status === 'Completed' ? 'task--done' : '',
+        overdue ? 'task--overdue' : '',
+      ]
+        .filter(Boolean)
+        .join(' ')}
+    >
+      <div className="task__main">
+        <div className="task__head">
+          <h3 className="task__title">{task.title}</h3>
+          <div className="task__badges">
+            <StatusBadge status={task.status} />
+            <PriorityBadge priority={task.priority} />
+          </div>
         </div>
+        {task.description && <p className="task__description">{task.description}</p>}
+        {(due || overdue) && (
+          <div className="task__meta">
+            {due && <span className="task__due">Due {due}</span>}
+            {overdue && <span className="task__overdue">Overdue</span>}
+          </div>
+        )}
       </div>
 
-      <div className="task__actions">
+      <div className="task__toolbar">
         {confirming ? (
           <div className="task__confirm" role="group" aria-label={`Confirm deleting ${task.title}`}>
             <span className="task__confirm-text">Delete this task?</span>
@@ -77,45 +92,54 @@ export default function TaskItem({ task, onEdit, onDelete, onStatusChange, onPri
           </div>
         ) : (
           <>
-            {statusActions.length > 0 && (
-              <div className="task__confirm" role="group" aria-label={`Change status of ${task.title}`}>
-                {statusActions.map(({ label, next }) => (
-                  <Button
-                    key={next}
-                    variant="outline"
-                    size="small"
-                    aria-label={`Mark ${task.title} as ${next}`}
-                    loading={movingTo === next}
-                    disabled={movingTo !== null}
-                    onClick={() => changeStatus(next)}
+            <div className="task__quick">
+              {statusActions.length > 0 && (
+                <div className="task__group" role="group" aria-label={`Change status of ${task.title}`}>
+                  {statusActions.map(({ label, next }) => (
+                    <Button
+                      key={next}
+                      variant="outline"
+                      size="small"
+                      aria-label={`Mark ${task.title} as ${next}`}
+                      loading={movingTo === next}
+                      disabled={movingTo !== null}
+                      onClick={() => changeStatus(next)}
+                    >
+                      {label}
+                    </Button>
+                  ))}
+                </div>
+              )}
+              {onPriorityChange && (
+                <div className="task__priority">
+                  <span className="task__priority-caption" aria-hidden="true">
+                    Priority
+                  </span>
+                  <select
+                    className="input select select--compact"
+                    aria-label={`Priority for ${task.title}`}
+                    value={task.priority}
+                    disabled={savingPriority}
+                    aria-busy={savingPriority ? 'true' : undefined}
+                    onChange={changePriority}
                   >
-                    {label}
-                  </Button>
-                ))}
-              </div>
-            )}
-            {onPriorityChange && (
-              <select
-                className="input select select--compact"
-                aria-label={`Priority for ${task.title}`}
-                value={task.priority}
-                disabled={savingPriority}
-                aria-busy={savingPriority ? 'true' : undefined}
-                onChange={changePriority}
-              >
-                {PRIORITIES.map((priority) => (
-                  <option key={priority} value={priority}>
-                    {priority}
-                  </option>
-                ))}
-              </select>
-            )}
-            <Button variant="outline" size="small" aria-label={`Edit ${task.title}`} onClick={() => onEdit(task)}>
-              Edit
-            </Button>
-            <Button variant="outline" size="small" aria-label={`Delete ${task.title}`} onClick={() => setConfirming(true)}>
-              Delete
-            </Button>
+                    {PRIORITIES.map((priority) => (
+                      <option key={priority} value={priority}>
+                        {priority}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+            </div>
+            <div className="task__manage">
+              <Button variant="outline" size="small" aria-label={`Edit ${task.title}`} onClick={() => onEdit(task)}>
+                Edit
+              </Button>
+              <Button variant="outline" size="small" aria-label={`Delete ${task.title}`} onClick={() => setConfirming(true)}>
+                Delete
+              </Button>
+            </div>
           </>
         )}
       </div>

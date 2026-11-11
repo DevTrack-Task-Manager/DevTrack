@@ -92,6 +92,38 @@ function validateLogin(body) {
   return runChecks(body, { email: checkEmail, password: checkExistingPassword });
 }
 
+/**
+ * PUT /api/auth/me: edit the signed-in user's details. `name` and `email` are optional but at
+ * least one must be present. `currentPassword` is validated here only for shape; the controller
+ * checks it against the stored hash, and requires it whenever the email actually changes.
+ */
+function validateProfileUpdate(body) {
+  const source = body && typeof body === 'object' && !Array.isArray(body) ? body : {};
+  const value = {};
+  const errors = {};
+
+  if (source.name !== undefined) {
+    const result = checkName(source.name);
+    if (result.error) errors.name = result.error;
+    else value.name = result.value;
+  }
+  if (source.email !== undefined) {
+    const result = checkEmail(source.email);
+    if (result.error) errors.email = result.error;
+    else value.email = result.value;
+  }
+  if (source.currentPassword !== undefined) {
+    const result = checkExistingPassword(source.currentPassword);
+    if (result.error) errors.currentPassword = result.error;
+    else value.currentPassword = result.value;
+  }
+
+  if (!Object.keys(errors).length && value.name === undefined && value.email === undefined) {
+    errors.body = 'Provide at least one field to update';
+  }
+  return { value, errors };
+}
+
 /** Returns the first error message in the object's insertion order. */
 function firstError(errors) {
   return Object.values(errors)[0];
@@ -107,5 +139,6 @@ module.exports = {
   isValidEmail,
   validateRegistration,
   validateLogin,
+  validateProfileUpdate,
   firstError,
 };

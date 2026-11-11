@@ -142,4 +142,35 @@ function validateTaskParams(params) {
   return { value: { id: source.id }, errors: {} };
 }
 
-module.exports = { sanitizeDescription, validateCreateTask, validateUpdateTask, validateTaskParams };
+/**
+ * Query string of GET /api/tasks (FR-10): optional `status` and `priority` filters.
+ * A value must be exactly one of the enum values. A repeated parameter (`?status=a&status=b`),
+ * a nested one (`?status[$ne]=x`) or an unsupported value is a 400. An empty value
+ * (`?status=`) means "no filter", which is what a cleared dropdown sends. Unknown parameters
+ * are ignored. Only whitelisted keys ever reach `value`.
+ */
+function validateTaskQuery(query) {
+  const source = asObject(query);
+  const value = {};
+  const errors = {};
+
+  for (const [field, check] of [
+    ['status', checkStatus],
+    ['priority', checkPriority],
+  ]) {
+    const raw = source[field];
+    if (raw === undefined || raw === '') continue;
+    const result = check(raw);
+    if (result.error) errors[field] = result.error;
+    else value[field] = result.value;
+  }
+  return { value, errors };
+}
+
+module.exports = {
+  sanitizeDescription,
+  validateCreateTask,
+  validateUpdateTask,
+  validateTaskParams,
+  validateTaskQuery,
+};

@@ -132,11 +132,18 @@ export function AuthProvider({ children }) {
     endSession(null);
   }, [endSession]);
 
+  // Edit name / email (PUT /api/auth/me). The token stays valid: it identifies the user by id.
+  const updateProfile = useCallback(async (details) => {
+    const data = await authService.updateProfile(details);
+    setState((prev) => (prev.status === 'authenticated' ? { ...prev, user: data.user } : prev));
+    return data.user;
+  }, []);
+
   const clearNotice = useCallback(() => setState((prev) => ({ ...prev, notice: null })), []);
 
   const value = useMemo(
-    () => ({ ...state, isAuthenticated: state.status === 'authenticated', login, register, logout, clearNotice }),
-    [state, login, register, logout, clearNotice]
+    () => ({ ...state, isAuthenticated: state.status === 'authenticated', login, register, logout, updateProfile, clearNotice }),
+    [state, login, register, logout, updateProfile, clearNotice]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
